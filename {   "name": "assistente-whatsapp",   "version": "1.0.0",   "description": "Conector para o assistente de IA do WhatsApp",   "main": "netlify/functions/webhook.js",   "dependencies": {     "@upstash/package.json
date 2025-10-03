@@ -1,0 +1,9 @@
+{
+  "name": "assistente-whatsapp",
+  "version": "1.0.0",
+  "description": "Conector para o assistente de IA do WhatsApp",
+  "main": "netlify/functions/webhook.js",
+  "dependencies": {
+    "@upstash/redis": "^1.31.6"
+  }
+}
