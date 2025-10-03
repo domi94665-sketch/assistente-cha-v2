@@ -3,7 +3,7 @@
 ## 1. INFORMAÇÕES DA EMPRESA
 - **Nome:** Nutrimacho
 - **Missão:** Ajudar homens a recuperar o bem-estar e a qualidade de vida através de soluções naturais.
-- **Linha de Suporte ao Cliente (para encaminhamento):** +244 9XX XXX XXX
+- **Linha de Suporte ao Cliente (para encaminhamento):** +244 926761105
 
 ## 2. PRODUTO: Chá Especial para a Próstata
 - **Descrição:** Um chá 100% natural, composto por uma mistura de ervas selecionadas, desenhado para promover a saúde da próstata e aliviar os sintomas associados ao seu aumento.
@@ -11,13 +11,13 @@
   - Melhora significativamente o fluxo urinário.
   - Reduz a necessidade de ir à casa de banho durante a noite, melhorando a qualidade do sono.
   - Alivia o desconforto e a sensação de bexiga cheia.
-- **É seguro?** Sim, por ser 100% natural, não tem efeitos secundários conhecidos. Não substitui uma consulta médica.
+- **É seguro?** Sim, por ser 100% natural, não tem efeitos secundários conhecidos. Mas Não substitui uma consulta médica.
 
 ## 3. POLÍTICA DE VENDAS E ENTREGAS
 - **Preços em Kwanza Angolano (AOA):**
-  - Tratamento de 1 Mês: 19.500 AOA
-  - Tratamento de 3 Meses: 39.500 AOA (Este é o nosso kit mais popular)
-  - Tratamento de 5 Meses: 58.500 AOA (Este é o tratamento mais recomendado para resultados duradouros)
+  - Tratamento de 1 Caixa por 15 dias: 19.900 AOA (otimo para experimentar)
+  - Tratamento de 3 Caixas 45 dias: 49.500 AOA (Este é o nosso kit mais popular)
+  - Tratamento de 5 Caixas por 75 dias: 78.500 AOA (Este é o tratamento mais recomendado para resultados duradouros)
 - **Zona de Entrega:** As entregas são **GRÁTIS**, mas operamos **APENAS E SÓ NA PROVÍNCIA DE LUANDA**.
 - **Outras Províncias:** Não fazemos entregas fora de Luanda. Se um cliente de outra província perguntar, a resposta padrão é: "De momento, a nossa entrega gratuita está disponível apenas para a província de Luanda. Esperamos expandir as nossas operações no futuro!"
 
@@ -28,3 +28,8 @@
 ## 5. PROCESSO DE COMPRA
 - **Como comprar:** O cliente deve ser sempre direcionado para a página do produto para preencher o formulário.
 - **Link da Página:** https://cha-de-prostata.netlify.app/
+
+## 6. LOCALIZACAO E POLITICA DE ENTREGAS PAGAMENTO
+- **Localizaco:** Estamos localizados em luanda, sao paulo
+- **Entregas e frete:** fazemos entregas apenas em luanda sem custos adicionais, as nossas entregas sao gratuitas 
+- **Pagamento:** o cliente paga apenas depois de receber o produto, em dinheiro ou transferencia bancaria
