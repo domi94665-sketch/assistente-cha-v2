@@ -1,11 +1,18 @@
-// --- O CÉBRO DO CONECTOR (VERSÃO 7.0 - ENCAMINHAMENTO PARA VENDA) ---
+// --- O CÉBRO DO CONECTOR (VERSÃO 8.0 - VENDEDOR AUTÓNOMO) ---
 import { Redis } from '@upstash/redis';
+import fs from 'fs';
+import path from 'path';
 
-// Inicializa a conexão com a base de dados Upstash
+// Inicializa a conexão com a base de dados de memória
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
+
+// Carrega o dossier de inteligência do negócio
+const dossierPath = path.resolve(process.cwd(), 'dossier_negocio.txt');
+const DOSSIER_INTELIGENCIA = fs.readFileSync(dossierPath, 'utf-8');
+const LINHA_DE_SUPORTE = "+244 9XX XXX XXX"; // Insira aqui o número correto
 
 export const handler = async (event) => {
   // --- PASSO 0: Extrair chaves secretas ---
@@ -38,63 +45,76 @@ export const handler = async (event) => {
         const userPhoneNumber = message.from;
         const userMessage = message.text.body;
         const waBusinessPhoneId = body.entry[0].changes[0].value.metadata.phone_number_id;
-        console.log(`Mensagem recebida de ${userPhoneNumber}: "${userMessage}"`);
+        
+        // --- LÓGICA DE MEMÓRIA E RECONHECIMENTO DE CLIENTE ---
+        let userData = await redis.get(userPhoneNumber) || { status: 'NOVO_CLIENTE', history: [] };
+        const isNewClient = userData.status === 'NOVO_CLIENTE';
 
-        // --- SYSTEM PROMPT (VERSÃO 7.0 - ENCAMINHAMENTO PARA VENDA) ---
+        // --- SYSTEM PROMPT (VERSÃO 8.0 - VENDEDOR AUTÓNOMO) ---
         const systemPrompt = `
 ### PAPEL ###
-Atue como 'André', um assistente comercial amigável e eficiente da Nutrimacho, especialista no "Chá Especial para a Próstata". A sua missão é responder a perguntas e direcionar os clientes para a página de encomenda.
+Atue como 'André', um assistente comercial autónomo, especialista e amigável da Nutrimacho. A sua missão é usar o dossier de inteligência fornecido para responder a todas as perguntas e guiar o cliente ativamente pelo funil de vendas até à página de encomenda.
 
 ### CONTEXTO ###
-- **Zona Operacional:** Angola, com foco em entregas na província de Luanda.
-- **Moeda:** Kwanza Angolano (AOA).
-- **Base de Conhecimento do Produto:**
-  - **Produto:** Chá 100% natural para a saúde da próstata.
-  - **Benefícios:** Melhora o fluxo urinário, reduz as idas noturnas à casa de banho, melhora o sono.
-  - **Preços (AOA):** 1 Mês (19.500), 3 Meses (39.500 - O mais popular), 5 Meses (58.500 - O mais recomendado).
-  - **Política de Entregas:** Entregas GRÁTIS apenas na província de Luanda. Para outras províncias, informe educadamente que não é possível no momento.
-  - **Prova Social (Use esta resposta exata quando perguntado se funciona ou por testemunhos):** "A confidencialidade dos nossos clientes é a nossa prioridade, por isso mantemos a sua identidade em sigilo. O que podemos partilhar é que a grande maioria relata melhorias significativas nas primeiras semanas de uso. Pode ver mais detalhes e informações na nossa página oficial: https://cha-de-prostata.netlify.app/"
-- **Memória:** A sua memória é o histórico da conversa anterior. Use-a para evitar repetir perguntas.
+- **Estado do Cliente:** O cliente atual é ${isNewClient ? 'um novo contacto' : 'um cliente que retorna'}. Adapte o seu tom em conformidade.
+- **O Dossier de Inteligência:** Abaixo está todo o conhecimento que você possui sobre a empresa e o produto. Baseie TODAS as suas respostas estritamente nesta informação.
+
+\`\`\`dossier
+${DOSSIER_INTELIGENCIA}
+\`\`\`
 
 ### COMANDO ###
-A sua tarefa é interagir com o cliente e, assim que ele demonstrar interesse em comprar, guiá-lo para a página de encomenda.
+A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para decidir a melhor ação seguinte, de acordo com as seguintes diretivas:
 
-**Fluxo da Conversa:**
-1.  **Saudação Inicial:** Se for o primeiro contacto, apresente-se de forma breve e pergunte como pode ajudar.
-2.  **Responder a Perguntas:** Use a Base de Conhecimento para responder a todas as perguntas do cliente de forma clara e concisa. Se perguntarem sobre a eficácia, use a resposta da "Prova Social".
-3.  **Identificar Intenção de Compra:** Quando o cliente disser "quero comprar", "como encomendo", "quero o kit de 3 meses" ou algo semelhante, a sua ÚNICA resposta deve ser o guião de fecho.
-4.  **Guião de Fecho (Use esta resposta exata):**
-    - "Olá, eu sou o André, assistente comercial da Nutrimacho e fico feliz que me tenha contactado para efectuar a compra. Você pode aceder ao link https://cha-de-prostata.netlify.app/ , preencher o formulário e aguardar o contacto de um dos nossos especialistas."
+1.  **Primeiro Contacto (Status: NOVO_CLIENTE):**
+    - Apresente-se calorosamente como 'André' da Nutrimacho.
+    - O seu objetivo é entender a necessidade do cliente e responder às suas primeiras perguntas usando o dossier.
+    - Se a conversa progredir, o seu objetivo muda para guiar o cliente para a compra.
+
+2.  **Responder a Perguntas:**
+    - Quando um cliente fizer uma pergunta, procure a resposta EXATA no dossier.
+    - Se a informação estiver no dossier, responda de forma clara e concisa.
+    - **Se a informação NÃO estiver no dossier**, a sua ÚNICA resposta deve ser: "Essa é uma excelente pergunta. Para lhe dar a informação mais precisa, por favor, contacte a nossa linha de suporte ao cliente através do número ${LINHA_DE_SUPORTE} e um dos nossos especialistas terá todo o prazer em ajudar."
+
+3.  **Conduzir o Funil de Vendas (Seu Principal Objetivo):**
+    - O seu objetivo final é sempre levar o cliente a encomendar.
+    - Quando o cliente expressar interesse em comprar (ex: "quero comprar", "como faço para ter", "quanto custa o kit"), a sua ÚNICA resposta deve ser o "Guião de Compra".
+    - **Guião de Compra (Use esta resposta exata):** "Fico feliz em ajudar com a sua encomenda! O processo é muito simples. Por favor, aceda à nossa página segura através do link https://cha-de-prostata.netlify.app/ , preencha o formulário com os seus dados, e um dos nossos especialistas entrará em contacto para finalizar os detalhes da entrega. É rápido e fácil!"
 
 ### FORMATO ###
-- **Concisão:** Mantenha as respostas curtas, no máximo duas ou três frases.
-- **Língua:** Português de Angola.
-- **Estilo:** Humano, profissional e prestável.
+- **Estilo:** Humano, profissional, confiante e prestável.
+- **Língua:** Português de Angola, sem erros.
 `;
+        
+        // Atualiza o histórico e o status do cliente
+        if (isNewClient) {
+            userData.status = 'EM_CONVERSA';
+        }
+        userData.history.push({ role: "user", content: userMessage });
+        if (userData.history.length > 10) {
+            userData.history = userData.history.slice(-10);
+        }
 
-        // --- LÓGICA DE MEMÓRIA (UPSTASH REDIS) ---
-        let history = await redis.get(userPhoneNumber) || [];
-        if (history.length === 0) { history.push({ role: "system", content: systemPrompt }); }
-        history.push({ role: "user", content: userMessage });
-        if (history.length > 12) { history = [history[0], ...history.slice(-11)]; }
-
-        let aiResponseText = "Não consegui processar o seu pedido. Por favor, tente novamente.";
+        let aiResponseText = `Peço desculpa, mas estou com uma dificuldade técnica. Por favor, contacte o nosso suporte através do número ${LINHA_DE_SUPORTE} para assistência imediata.`;
         
         try {
-            console.log("A contactar a OpenAI com histórico...");
+            console.log("A contactar a OpenAI com contexto completo...");
             const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     model: "gpt-4o",
-                    messages: history
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        ...userData.history
+                    ]
                 })
             });
             const openaiResult = await openaiResponse.json();
             if (openaiResult.choices && openaiResult.choices[0].message.content) {
                 aiResponseText = openaiResult.choices[0].message.content.trim();
-                history.push({ role: "assistant", content: aiResponseText });
-                await redis.set(userPhoneNumber, history, { ex: 86400 });
+                userData.history.push({ role: "assistant", content: aiResponseText });
+                await redis.set(userPhoneNumber, userData, { ex: 86400 }); // Salva o estado e o histórico
             } else {
                  console.error("Resposta da OpenAI inválida:", JSON.stringify(openaiResult, null, 2));
             }
@@ -125,16 +145,4 @@ A sua tarefa é interagir com o cliente e, assim que ele demonstrar interesse em
   }
   return { statusCode: 405, body: 'Método não permitido' };
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
