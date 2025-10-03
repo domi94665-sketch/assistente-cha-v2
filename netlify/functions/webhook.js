@@ -96,7 +96,7 @@ Você é um especialista de vendas para o "Chá Especial para a Próstata", um c
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: "moonshotai/kimi-k-instruct-0905",
+                    model: "mixtral-8x7b-32768", // MODELO CORRIGIDO E ESTÁVEL
                     messages: [
                         { role: "system", content: systemPrompt },
                         { role: "user", content: userMessage }
@@ -148,6 +148,8 @@ Você é um especialista de vendas para o "Chá Especial para a Próstata", um c
 
   return { statusCode: 405, body: 'Método não permitido' };
 };
+
+
 
 
 
