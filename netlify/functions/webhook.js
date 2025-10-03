@@ -1,4 +1,4 @@
-// --- O CÉBRO DO CONECTOR (VERSÃO 8.0 - VENDEDOR AUTÓNOMO) ---
+// --- O CÉBRO DO CONECTOR (VERSÃO 8.1 - CORREÇÃO DE MEMÓRIA) ---
 import { Redis } from '@upstash/redis';
 import fs from 'fs';
 import path from 'path';
@@ -46,8 +46,17 @@ export const handler = async (event) => {
         const userMessage = message.text.body;
         const waBusinessPhoneId = body.entry[0].changes[0].value.metadata.phone_number_id;
         
-        // --- LÓGICA DE MEMÓRIA E RECONHECIMENTO DE CLIENTE ---
+        // --- LÓGICA DE MEMÓRIA E RECONHECIMENTO DE CLIENTE (COM CORREÇÃO) ---
         let userData = await redis.get(userPhoneNumber) || { status: 'NOVO_CLIENTE', history: [] };
+        
+        // **INÍCIO DA CORREÇÃO**
+        // Verificação de segurança: Garante que o histórico é sempre um array válido.
+        if (!Array.isArray(userData.history)) {
+            console.warn(`Histórico corrompido para ${userPhoneNumber}. A reiniciar o histórico.`);
+            userData.history = [];
+        }
+        // **FIM DA CORREÇÃO**
+
         const isNewClient = userData.status === 'NOVO_CLIENTE';
 
         // --- SYSTEM PROMPT (VERSÃO 8.0 - VENDEDOR AUTÓNOMO) ---
@@ -145,4 +154,6 @@ A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para d
   }
   return { statusCode: 405, body: 'Método não permitido' };
 };
+
+
 
