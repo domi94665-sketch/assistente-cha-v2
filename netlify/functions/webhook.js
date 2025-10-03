@@ -1,4 +1,4 @@
-// --- O CÉBRO DO CONECTOR (VERSÃO 8.1 - CORREÇÃO DE MEMÓRIA) ---
+// --- O CÉBRO DO CONECTOR (VERSÃO 8.2 - CORREÇÃO DE LINK) ---
 import { Redis } from '@upstash/redis';
 import fs from 'fs';
 import path from 'path';
@@ -46,20 +46,13 @@ export const handler = async (event) => {
         const userMessage = message.text.body;
         const waBusinessPhoneId = body.entry[0].changes[0].value.metadata.phone_number_id;
         
-        // --- LÓGICA DE MEMÓRIA E RECONHECIMENTO DE CLIENTE (COM CORREÇÃO) ---
         let userData = await redis.get(userPhoneNumber) || { status: 'NOVO_CLIENTE', history: [] };
-        
-        // **INÍCIO DA CORREÇÃO**
-        // Verificação de segurança: Garante que o histórico é sempre um array válido.
         if (!Array.isArray(userData.history)) {
-            console.warn(`Histórico corrompido para ${userPhoneNumber}. A reiniciar o histórico.`);
             userData.history = [];
         }
-        // **FIM DA CORREÇÃO**
-
         const isNewClient = userData.status === 'NOVO_CLIENTE';
 
-        // --- SYSTEM PROMPT (VERSÃO 8.0 - VENDEDOR AUTÓNOMO) ---
+        // --- SYSTEM PROMPT (VERSÃO 8.2 - CORREÇÃO DE LINK) ---
         const systemPrompt = `
 ### PAPEL ###
 Atue como 'André', um assistente comercial autónomo, especialista e amigável da Nutrimacho. A sua missão é usar o dossier de inteligência fornecido para responder a todas as perguntas e guiar o cliente ativamente pelo funil de vendas até à página de encomenda.
@@ -78,24 +71,22 @@ A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para d
 1.  **Primeiro Contacto (Status: NOVO_CLIENTE):**
     - Apresente-se calorosamente como 'André' da Nutrimacho.
     - O seu objetivo é entender a necessidade do cliente e responder às suas primeiras perguntas usando o dossier.
-    - Se a conversa progredir, o seu objetivo muda para guiar o cliente para a compra.
 
 2.  **Responder a Perguntas:**
     - Quando um cliente fizer uma pergunta, procure a resposta EXATA no dossier.
-    - Se a informação estiver no dossier, responda de forma clara e concisa.
     - **Se a informação NÃO estiver no dossier**, a sua ÚNICA resposta deve ser: "Essa é uma excelente pergunta. Para lhe dar a informação mais precisa, por favor, contacte a nossa linha de suporte ao cliente através do número ${LINHA_DE_SUPORTE} e um dos nossos especialistas terá todo o prazer em ajudar."
 
 3.  **Conduzir o Funil de Vendas (Seu Principal Objetivo):**
     - O seu objetivo final é sempre levar o cliente a encomendar.
-    - Quando o cliente expressar interesse em comprar (ex: "quero comprar", "como faço para ter", "quanto custa o kit"), a sua ÚNICA resposta deve ser o "Guião de Compra".
+    - Quando o cliente expressar interesse em comprar, a sua ÚNICA resposta deve ser o "Guião de Compra".
     - **Guião de Compra (Use esta resposta exata):** "Fico feliz em ajudar com a sua encomenda! O processo é muito simples. Por favor, aceda à nossa página segura através do link https://cha-de-prostata.netlify.app/ , preencha o formulário com os seus dados, e um dos nossos especialistas entrará em contacto para finalizar os detalhes da entrega. É rápido e fácil!"
 
 ### FORMATO ###
 - **Estilo:** Humano, profissional, confiante e prestável.
 - **Língua:** Português de Angola, sem erros.
+- **Formatação de Links (MUITO IMPORTANTE):** Ao enviar o link da página, envie APENAS o texto do URL (https://cha-de-prostata.netlify.app/). NUNCA o formate como um link Markdown \`[texto](link)\`.
 `;
         
-        // Atualiza o histórico e o status do cliente
         if (isNewClient) {
             userData.status = 'EM_CONVERSA';
         }
@@ -123,7 +114,7 @@ A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para d
             if (openaiResult.choices && openaiResult.choices[0].message.content) {
                 aiResponseText = openaiResult.choices[0].message.content.trim();
                 userData.history.push({ role: "assistant", content: aiResponseText });
-                await redis.set(userPhoneNumber, userData, { ex: 86400 }); // Salva o estado e o histórico
+                await redis.set(userPhoneNumber, userData, { ex: 86400 }); 
             } else {
                  console.error("Resposta da OpenAI inválida:", JSON.stringify(openaiResult, null, 2));
             }
@@ -131,7 +122,6 @@ A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para d
         
         console.log(`Resposta da IA: "${aiResponseText}"`);
         
-        // --- PASSO 4: Enviar a resposta ---
         const metaApiResponse = await fetch(`https://graph.facebook.com/v20.0/${waBusinessPhoneId}/messages`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${WHATSAPP_TOKEN}`, 'Content-Type': 'application/json', },
@@ -154,6 +144,8 @@ A sua tarefa é analisar a mensagem do cliente e o histórico da conversa para d
   }
   return { statusCode: 405, body: 'Método não permitido' };
 };
+
+
 
 
 
