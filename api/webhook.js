@@ -1,4 +1,4 @@
-// --- O CÉBRO DO CONECTOR (VERSÃO 9.1 - VERCEL / Z-API / VENDEDOR AUTÓNOMO) ---
+// --- O CÉBRO DO CONECTOR (VERSÃO 9.2 - CORREÇÃO DE ERROS) ---
 import { Redis } from '@upstash/redis';
 import fs from 'fs';
 import path from 'path';
@@ -30,8 +30,10 @@ export default async function handler(req, res) {
     
     // Verifica se é uma mensagem de texto válida da Z-API
     if (body.text && body.phone && !body.fromMe) {
+      // **INÍCIO DA CORREÇÃO 1: Lidar com formatos de mensagem variáveis**
+      const userMessage = (typeof body.text === 'object' && body.text.message) ? body.text.message : body.text;
       const userPhoneNumber = body.phone;
-      const userMessage = body.text;
+      // **FIM DA CORREÇÃO 1**
       
       console.log(`Mensagem recebida de ${userPhoneNumber}: "${userMessage}"`);
 
@@ -98,6 +100,11 @@ A sua tarefa é analisar a mensagem do cliente e decidir a melhor ação:
       console.log(`Resposta da IA: "${aiResponseText}"`);
       
       // --- PASSO 4: Enviar a resposta VIA Z-API ---
+      // **INÍCIO DA CORREÇÃO 2: Adicionar log de diagnóstico**
+      const zapiUrl = `https://api.z-api.io/instances/${ZAPI_INSTANCE_ID}/token/TOKEN_OCULTO/send-text`;
+      console.log(`A enviar resposta para a Z-API. Endpoint: ${zapiUrl}`);
+      // **FIM DA CORREÇÃO 2**
+      
       const zapiResponse = await fetch(`https://api.z-api.io/instances/${ZAPI_INSTANCE_ID}/token/${ZAPI_TOKEN}/send-text`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -125,3 +132,5 @@ A sua tarefa é analisar a mensagem do cliente e decidir a melhor ação:
     res.status(500).send('Erro interno');
   }
 }
+
+
